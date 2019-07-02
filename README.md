@@ -1,14 +1,12 @@
 # shinyfunction.R
 collect some R functions together for source  coveniently
 Here is a example how to write a efficient R function 
+```
 # the initial function
-···js
 Summary.MeanAndSd <- function (x) {
   mean <- mean(x)
   sd <- sd(x)
 }
-```
-
 # generate a set of data to test the function
 set.seed(10)  # 设定种子
 x <- rnorm(20, 0, 1)
