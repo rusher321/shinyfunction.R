@@ -2,10 +2,10 @@
 collect some R functions together for source  coveniently
 Here is a example how to write a efficient R function 
 # the initial function
-Summary.MeanAndSd <- function (x) {
+<p>Summary.MeanAndSd <- function (x) {
   mean <- mean(x)
   sd <- sd(x)
-}
+}<p>
 
 # generate a set of data to test the function
 set.seed(10)  # 设定种子
