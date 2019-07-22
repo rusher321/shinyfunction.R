@@ -46,3 +46,30 @@ getD <- function(pro1, pro2, methods){
         dis <- c(dis, tmp)
       }
     }
+
+## get the multigroup permanova
+multiadonis <- function(dat, config, perm=1000, method="bray"){
+  # reorder the sample id of dat and config 
+  # dat : row is sample 
+  # perm : permutation number ,default 1000
+  # method : distance method 
+  id <- intersect(rownames(dat), rownames(config))
+  dat <- dat[id, ]
+  config <- config[id,]
+  combng <- combn(unique(config), 2)
+  res <- matrix(NA, nrow=ncol(combng), ncol = 6)
+  for(i in 1:ncol(combng)){
+    group <- c(config[which(config==combng[1,i])],
+               config[which(config==combng[2,i])])
+    pro <- dat[c(which(config==combng[1,i]), 
+                 which(config==combng[2,i])), ]
+    # here use the adonise function 
+    library(vegan)
+    res[i, 1:6] <- as.numeric(adonis(pro~group, permutations = perm, method = method)$aov[1,])
+  }
+  rownames(res) <- apply(combng, 2, function(x){paste0(x[1], " vs ", x[2])})
+  colnames(res) <- c("Df", "SumsOfSqs", "MeanSqs", "F.Model", "R2", "Pr(>F)")
+  return(res)
+  
+}
+  
