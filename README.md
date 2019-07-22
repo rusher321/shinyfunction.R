@@ -1,6 +1,6 @@
 # shinyfunction.R
 collect some R functions together for source  coveniently
-Here is a example how to write a efficient R function 
+\nHere is a example how to write a efficient R function 
 ```
 # the initial function
 Summary.MeanAndSd <- function (x) {
