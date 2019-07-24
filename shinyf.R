@@ -11,6 +11,11 @@ pasteP <- function(x, sep){
   }
   return(y)
 }
+
+## used to rev the string
+revString <- function(text){
+  paste(rev(unlist(strsplit(text,NULL))),collapse="")
+}
 ###----- stat ---------
 ## to filter the outlier of vector 
 filterE <- function(x, percent = 0.05){
@@ -52,7 +57,8 @@ multiadonis <- function(dat, config, perm=1000, method="bray"){
   # reorder the sample id of dat and config 
   # dat : row is sample 
   # perm : permutation number ,default 1000
-  # method : distance method 
+  # method : distance method
+  
   id <- intersect(rownames(dat), rownames(config))
   dat <- dat[id, ]
   config <- config[id,]
@@ -72,4 +78,5 @@ multiadonis <- function(dat, config, perm=1000, method="bray"){
   return(res)
   
 }
-  
+### --- plot -----
+
