@@ -16,6 +16,14 @@ pasteP <- function(x, sep){
 revString <- function(text){
   paste(rev(unlist(strsplit(text,NULL))),collapse="")
 }
+
+## rever the string in  vector
+revStringVector <- function(vetor){
+  res <- sapply(vector, function(x){paste(rev(unlist(strsplit(x,NULL))),collapse="")})
+  return(as.vector(res))
+}
+
+
 ###----- stat ---------
 ## to filter the outlier of vector 
 filterE <- function(x, percent = 0.05){
