@@ -86,5 +86,99 @@ multiadonis <- function(dat, config, perm=1000, method="bray"){
   return(res)
   
 }
-### --- plot -----
 
+## to compute the JSD distance 
+
+dist.JSD <- function(inMatrix, pseudocount=0.0000000001, ...) {
+	# to compute the JSD distance 
+	inMatrix <- t(inMatrix)
+	KLD <- function(x,y) sum(x *log(x/y))
+	JSD<- function(x,y) sqrt(0.5 * KLD(x, (x+y)/2) + 0.5 * KLD(y, (x+y)/2))
+	matrixColSize <- length(colnames(inMatrix))
+	matrixRowSize <- length(rownames(inMatrix))
+	colnames <- colnames(inMatrix)
+	resultsMatrix <- matrix(0, matrixColSize, matrixColSize)
+        
+  inMatrix = apply(inMatrix,1:2,function(x) ifelse (x==0,pseudocount,x))
+
+	for(i in 1:matrixColSize) {
+		for(j in 1:matrixColSize) { 
+			resultsMatrix[i,j]=JSD(as.vector(inMatrix[,i]),
+			as.vector(inMatrix[,j]))
+		}
+	}
+	colnames -> colnames(resultsMatrix) -> rownames(resultsMatrix)
+	as.dist(resultsMatrix)->resultsMatrix
+	attr(resultsMatrix, "method") <- "dist"
+	return(resultsMatrix)
+
+}
+
+
+
+## to select the best cluster number based on the CH-index
+kBest <- function(data, dist , method = "kmeans"){
+  # data is a profile /col is sample , row is feature
+  # dist is distance from vegdist or dist  
+  # method is cluster method 
+  nclusters=NULL
+  sil = NULL
+  out <- list()
+  res <- matrix(NA, 19, ncol(data))
+	for (k in 2:20) { 
+	    #print(k)
+		  switch (method,
+		          kmeans = { data.cluster_temp <-kmeans(dist, k)$cluster},
+		          pam = { data.cluster_temp <-pam(dist, k)$clustering},
+		          fanny = {  data.cluster_temp <- fanny(dist, k)$clustering}
+		                               )
+		  res[k-1,] <- data.cluster_temp
+			nclusters[k-1] <- index.G1(t(data) , data.cluster_temp,  d = dist,
+			centrotypes = "medoids")
+			sil[k-1] <- mean(silhouette(data.cluster_temp, dist = dist)[,3])
+	}
+  
+  best <- which.max(nclusters)+1
+  kCluster <- c(2:20)
+  CH_index <- nclusters
+  Silhouette <- sil
+  cluster <- data.frame(kCluster,  CH_index, Silhouette)
+  cluster <- melt(cluster, id = "kCluster")
+  colnames(cluster) <- c("kCluster", "Index", "value")
+  # final Theme 
+  finalTheme <- theme_set(theme_bw()) +
+  		theme(panel.grid.major = element_blank(),
+        	panel.grid.minor = element_blank())
+  
+  figure <- ggplot(cluster, aes(x=value, y=kCluster))+
+  geom_segment(aes(yend=kCluster),xend=0,colour="grey")+
+  geom_point(size=3,aes(colour=Index))+
+  scale_colour_brewer(palette="Set1",limits=c("CH_index","Silhouette"))+
+  theme_bw()+finalTheme+xlab("")+ylab("Number of cluster")+facet_grid(.~Index, scales = "free")
+  
+  out <- list(res[best-1,], best, figure)
+}
+
+
+### --- plot -----
+pcoaFig <- function(data.dist, cluster){
+  # plot the pcoa
+  # data.dist is distance data format from vegdist or dist 
+
+  obs.pcoa=dudi.pco(data.dist, scannf=F, nf=3)
+  var1 <- round((obs.pcoa$eig[1]/sum(obs.pcoa$eig))*100,2)
+  var2 <- round((obs.pcoa$eig[2]/sum(obs.pcoa$eig))*100,2)
+  minX <- min(obs.pcoa$li[,1])
+  maxX <- max(obs.pcoa$li[,1])
+  minY <- min(obs.pcoa$li[,2])
+  maxY <- max(obs.pcoa$li[,2])
+
+  plot(0,0, main = "Pcoa", type = "n",
+    xlab=paste("Pco1 (",var1,"%)"),ylab=paste("Pco2 (",var2,"%)"), 
+    xlim=c(minX-10^floor(log10(abs(minX))),maxX+10^floor(log10(abs(maxX)))), 
+    ylim=c(minY-10^floor(log10(abs(minY))),maxY+10^floor(log10(abs(maxY)))),
+    frame=TRUE, cex=1.5, add=T)
+ s.class(obs.pcoa$li, fac=as.factor(cluster), cell =2 ,
+        csta = 0 , col = color, grid=F, add.plot = T)
+
+  }
